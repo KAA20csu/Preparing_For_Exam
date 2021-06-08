@@ -14,7 +14,6 @@ namespace MiniDB
         static void Main()
         {
             Greets();
-            
             Column clmn = null;
             Dictionary<string, string> clmnProperties = new Dictionary<string, string>();
             foreach (string currentColumn in Columns)
@@ -24,12 +23,12 @@ namespace MiniDB
             }
             var mainTb = new Table(TbName, clmn);
             Tables.Add(mainTb);
+            Console.WriteLine("Введите имя таблицы и колонки через пробел, на которую ссылается колонка, если ссылка предусматривается:");
             IsRefererence(clmn, mainTb);
             
         }
         static void IsRefererence(Column clmn, Table tb)
         {
-            Console.WriteLine("Введите имя таблицы и колонки через пробел, на которую ссылается колонка, если ссылка предусматривается:");
             string[] ifReference = Console.ReadLine().Split(" ");
             if (ifReference[0] != "")
             {
