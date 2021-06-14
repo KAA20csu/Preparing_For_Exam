@@ -7,20 +7,35 @@ namespace GenTree
     class Program
     {
         private static List<Person> Obj { get; } = new List<Person>();
-        private static List<Relation> Relations { get; } = new List<Relation>();
         static void Main()
         {
             GetPeopleList();
-            Console.WriteLine("Введите Id первого человека:");
-            string frst = Console.ReadLine();
-            Console.WriteLine("Введите Id второго человека:");
-            string scnd = Console.ReadLine();
-            Console.WriteLine(CheckRelates(frst,scnd));
+            Console.WriteLine("Введите данные первого человека:");
+            int id = int.Parse(Console.ReadLine());
+            Console.WriteLine("Введите данные второго человека:");
+            int id2 = int.Parse(Console.ReadLine());
+            Console.WriteLine(GetRelatess(id,id2));
+        }
+        static string GetRelatess(int id, int id2)
+        {
+            foreach (var c in Obj)
+            {
+                if (id == c.Id)
+                {
+                    foreach (var b in c.PrsnRlts)
+                    {
+                        if (id2 == b.Second.Id)
+                        {
+                            return c.PrsnRlts[1].RltType.ToString();
+                        }
+                    }
+                }
+            }
+            return "";
         }
         static void GetPeopleList()
         {
-            string[] allPeople = File.ReadAllLines("Info.txt");
-
+            string[] allPeople = File.ReadAllLines("Info.txt"); // Вся инфа
             int i = 1;
             for(; i<allPeople.Length; i++)
             {
@@ -28,42 +43,67 @@ namespace GenTree
                 {
                     string[] current = allPeople[i].Split(";");
                     Obj.Add(new Person(int.Parse(current[0]), current[1], current[2], current[3]));
+                    // 1 Иванов Иван 19.05.1974 и т.п
                 }
                 else
                 {
                     i++;
-                    break;
+                    break; // Парсим до пустой строки, считывая каждого человека. Добавляем в список.
                 }
             }
             GetRelates(i, allPeople);
         }
-        static string CheckRelates(string firstId, string secondId)
+        static void GetRelates(int i, string[] allPeople) // Чекаем всё ниже пустой строки (отношения)
         {
-            foreach(var relations in Relations)
-            {
-                if(int.Parse(firstId) == relations.FirstId && int.Parse(secondId) == relations.SecondId)
-                {
-                    return relations.Relate;
-                }
-            }
-            return "Неопределённые отношения";
-        }
-        static void GetRelates(int i, string[] allPeople)
-        {
-            for (; i < allPeople.Length; i++)
+            for(;i<allPeople.Length; i++)
             {
                 string[] ids = allPeople[i].Split("<->");
                 string[] relates = ids[1].Split("=");
-                Relations.Add(new Relation(int.Parse(ids[0]), int.Parse(relates[0]), relates[1]));
+                // 1 2 sibling и т.д  
+                int fPrsn = int.Parse(ids[0]);
+                int sPrsn = int.Parse(relates[0]);
+                string relType = relates[1];
+
+                PersonRelates rlates = new PersonRelates();
+                rlates.RltType = GetRelationType(relType);
+                foreach (var crntPerson in Obj)
+                {
+                    if (crntPerson.Id == fPrsn)
+                    {
+                        rlates.First = crntPerson;
+                        crntPerson.PrsnRlts.Add(rlates);
+                    }
+                    else if (crntPerson.Id == sPrsn)
+                    {
+                        rlates.Second = crntPerson;
+                        crntPerson.PrsnRlts.Add(rlates);
+                    }
+                }
             }
         }
+        private static RelationType GetRelationType(string relation)
+        {
+            return relation == "spouse"
+                ? RelationType.spouse
+                : relation == "sibling"
+                    ? RelationType.sibling
+                    : RelationType.parent;
+        }
+    }
+    enum RelationType { sibling, spouse, parent}
+    class PersonRelates
+    {
+        public Person First;
+        public Person Second;
+        public RelationType RltType;
     }
     class Person 
     {
-        private int Id { get; }
+        public int Id { get; }
         private string LastName { get; }
         private string FirstName { get; }
         private string BirthDate { get; }
+        public List<PersonRelates> PrsnRlts { get; private set; } = new List<PersonRelates>();
         public Person(int id, string lName, string fName, string bDate)
         {
             Id = id;
@@ -71,20 +111,5 @@ namespace GenTree
             FirstName = fName;
             BirthDate = bDate;
         }
-    }
-    
-    class Relation
-    {
-        public enum Relations { parent, spouse, sibling }
-        public int FirstId { get; }
-        public int SecondId { get; }
-        public string Relate { get; }
-        public Relation(int first, int second, string relate)
-        {
-            FirstId = first;
-            SecondId = second;
-            Relate = relate;
-        }
-
     }
 }
