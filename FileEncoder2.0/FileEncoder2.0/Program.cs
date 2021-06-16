@@ -24,18 +24,18 @@ namespace File_Encoder
                     break;
             }
         }
+        public static Source GetSource(string[] cmnd, string srs)
+        {
+            return srs == "buffer" ? Source.buffer : Source.source;
+        }
     }
     class Encoding
     {
-        static Source GetSource(string[] cmnd, string srs)
-        {
-            return srs == cmnd[3] ? Source.buffer : Source.source;
-        }
         public static void ExecuteCommand(string[] cmnd)
         {
             string file = File.ReadAllText($"{cmnd[5]}");
             var encoded = System.Text.Encoding.UTF8.GetBytes(file);
-            if (GetSource(cmnd, cmnd[3]) == Source.source)
+            if (Program.GetSource(cmnd, cmnd[3]) == Source.source)
             {
                 File.WriteAllText($"{cmnd[5]}.txt", System.Convert.ToBase64String(encoded));
             }
@@ -45,15 +45,11 @@ namespace File_Encoder
 
     class Decoding
     {
-        static Source GetSource(string[] cmnd, string srs)
-        {
-            return srs == cmnd[3] ? Source.buffer : Source.source;
-        }
         public static void ExecuteCommand(string[] cmnd)
         {
             string file = File.ReadAllText($"{cmnd[5]}");
             var decoded = System.Convert.FromBase64String(file);
-            if (GetSource(cmnd, cmnd[3]) == Source.source)
+            if (Program.GetSource(cmnd, cmnd[3]) == Source.source)
             {
                 File.WriteAllText($"{cmnd[5]}.txt", System.Text.Encoding.UTF8.GetString(decoded));
             }
