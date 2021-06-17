@@ -17,10 +17,10 @@ namespace File_Encoder
             switch (smthng[1])
             {
                 case"encode":
-                    Encoding.ExecuteCommand(smthng);
+                    Command encode = new Encoding().ExecuteCommand(smthng);
                     break;
                 case"decode":
-                    Decoding.ExecuteCommand(smthng);
+                    Command decode = new Decoding().ExecuteCommand(smthng);
                     break;
             }
         }
@@ -29,9 +29,14 @@ namespace File_Encoder
             return srs == "buffer" ? Source.buffer : Source.source;
         }
     }
-    class Encoding
+
+    public abstract class Command
     {
-        public static void ExecuteCommand(string[] cmnd)
+        public abstract Command ExecuteCommand(string[] cmnd);
+    }
+    class Encoding : Command
+    {
+        public override Command ExecuteCommand(string[] cmnd)
         {
             string file = File.ReadAllText($"{cmnd[5]}");
             var encoded = System.Text.Encoding.UTF8.GetBytes(file);
@@ -40,12 +45,14 @@ namespace File_Encoder
                 File.WriteAllText($"{cmnd[5]}.txt", System.Convert.ToBase64String(encoded));
             }
             else Clipboard.SetText(System.Convert.ToBase64String(encoded));
+
+            return this;
         }
     }
 
-    class Decoding
+    class Decoding : Command
     {
-        public static void ExecuteCommand(string[] cmnd)
+        public override Command ExecuteCommand(string[] cmnd)
         {
             string file = File.ReadAllText($"{cmnd[5]}");
             var decoded = System.Convert.FromBase64String(file);
@@ -54,6 +61,7 @@ namespace File_Encoder
                 File.WriteAllText($"{cmnd[5]}.txt", System.Text.Encoding.UTF8.GetString(decoded));
             }
             else Clipboard.SetText(System.Text.Encoding.UTF8.GetString(decoded));
+            return this;
         }
     }
     enum Commands { encode, decode }
